@@ -1,0 +1,5 @@
+name: CrummerCommunicator
+version: '${project.version}'
+main: com.github.tatercertified.ccbukkit.CrummerCommunicator
+api-version: '1.20'
+load: STARTUP

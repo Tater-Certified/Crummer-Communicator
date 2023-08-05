@@ -1,0 +1,20 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+
+        // Fabric
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+    }
+}
+
+rootProject.name = 'crummer-communicator'
+
+include (
+    'cc-bot',
+    'cc-fabric',
+    'cc-bukkit',
+    'cc-velocity'
+)

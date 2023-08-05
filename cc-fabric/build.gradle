@@ -1,0 +1,45 @@
+plugins {
+    id('fabric-loom') version('1.3-SNAPSHOT')
+}
+
+archivesBaseName = 'Crummer Communicator'
+
+repositories {
+    maven { url 'https://maven.fabricmc.net/' }
+    mavenLocal()
+}
+
+dependencies {
+
+    // Minecraft and Fabric mappings
+    minecraft("com.mojang:minecraft:${project.minecraft_version}")
+    mappings("net.fabricmc:yarn:${project.yarn_mappings}:v2")
+    modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
+
+    // Fabric API
+    Set<String> apiModules = [
+            'fabric-command-api-v2',
+            'fabric-lifecycle-events-v1',
+            'fabric-networking-api-v1'
+    ]
+
+    apiModules.forEach {
+        modImplementation(fabricApi.module(it, project.fabric_version))
+    }
+
+    implementation 'org.java-websocket:Java-WebSocket:1.5.4'
+    implementation 'com.github.aternosorg:mclogs-java:v2.2.0'
+}
+
+processResources {
+    inputs.property("version", project.version)
+    inputs.property("minecraft_version", minecraft_version)
+    inputs.property("loader_version", loader_version)
+    filteringCharset("UTF-8")
+
+    filesMatching("fabric.mod.json") {
+        expand("version": project.version,
+                "minecraft_version": minecraft_version,
+                "loader_version": loader_version)
+    }
+}

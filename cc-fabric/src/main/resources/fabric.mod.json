@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "cc-fabric",
+  "version": "${version}",
+  "name": "Crummer Communicator",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/Tater-Certified/cc-fabric"
+  },
+  "license": "LGPL-3.0",
+  "icon": "assets/cc-fabric/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "client": [
+    ],
+    "main": [
+      "com.github.tatercertified.ccfabric.CrummerCommunicator"
+    ]
+  },
+  "mixins": [
+    "cc-fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

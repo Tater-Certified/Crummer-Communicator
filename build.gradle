@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+}
+
+defaultTasks('build')
+
+subprojects {
+    apply(plugin: 'java')
+
+    group = 'com.github.tatercertified'
+    version = '1.0.0'
+
+    sourceCompatibility = 17
+    targetCompatibility = 17
+
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = 'UTF-8'
+        }
+    }
+
+    repositories {
+        mavenCentral()
+
+        // Bukkit
+        maven {
+            name = "spigotmc-repo"
+            url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/groups/public/"
+        }
+
+        // Velocity
+        maven {
+            name = "papermc-repo"
+            url = "https://repo.papermc.io/repository/maven-public/"
+        }
+
+        // JDA
+        maven {
+            url "https://m2.dv8tion.net/releases"
+        }
+
+        // MCLOGS
+        maven {
+            url 'https://jitpack.io'
+        }
+    }
+}
