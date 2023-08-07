@@ -1,6 +1,9 @@
 package com.github.tatercertified.minecraft;
 
 import com.github.tatercertified.discord.DiscordIOManager;
+import com.github.tatercertified.minecraft.servers.Server;
+import com.github.tatercertified.networking.DataServer;
+import com.github.tatercertified.networking.DataType;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -13,24 +16,29 @@ import java.util.zip.GZIPOutputStream;
 
 public class ServerFunctionsManager {
 
+    private final DataServer dataServer;
+
+    public ServerFunctionsManager(DataServer dataServer) {
+        this.dataServer = dataServer;
+    }
+
     /**
      * Copies the world folder and runs it through a GZip compressor
      * @param dioManager DiscordIOManager class
      * @param server Server class
      */
-    public void backupWorld(BasicServer server, DiscordIOManager dioManager) {
-        Path backupPath = server.backupPath;
-        String worldPathString = server.worldPath;
+    public void backupWorld(Server server, DiscordIOManager dioManager) {
+        Path backupPath = Path.of(server.getBackupPath());
+        String worldPathString = server.getWorldPath();
         if (Files.notExists(backupPath)) {
             try {
                 Files.createDirectory(backupPath);
             } catch (IOException e) {
-                dioManager.outputToConsole("Error: Failed to create Backup folder for " + server.name, DiscordIOManager.MessageType.ERROR);
+                dioManager.outputToConsole("Error: Failed to create Backup folder for " + server.getName(), DiscordIOManager.MessageType.ERROR);
                 throw new RuntimeException(e);
             }
         }
 
-        // Step 1: Copy the folder to the destination location
         Path destinationPath;
         try {
             Path worldPath = Paths.get(worldPathString);
@@ -42,7 +50,7 @@ public class ServerFunctionsManager {
                             Path target = finalDestinationPath.resolve(worldPath.relativize(source));
                             Files.copy(source, target, StandardCopyOption.COPY_ATTRIBUTES);
                         } catch (IOException e) {
-                            dioManager.outputToConsole("Error: Failed to copy world folder as backup for " + server.name, DiscordIOManager.MessageType.ERROR);
+                            dioManager.outputToConsole("Error: Failed to copy world folder as backup for " + server.getName(), DiscordIOManager.MessageType.ERROR);
                             e.printStackTrace();
                         }
                     });
@@ -51,7 +59,6 @@ public class ServerFunctionsManager {
             return;
         }
 
-        // Step 2: Compress the copied folder using GZIP
         String compressedFilePath = destinationPath + ".gz";
         try (FileOutputStream fos = new FileOutputStream(compressedFilePath);
              GZIPOutputStream gzipOS = new GZIPOutputStream(fos)) {
@@ -72,11 +79,11 @@ public class ServerFunctionsManager {
                         }
                     });
         } catch (IOException e) {
-            dioManager.outputToConsole("Error: Failed to compress backup for " + server.name, DiscordIOManager.MessageType.ERROR);
+            dioManager.outputToConsole("Error: Failed to compress backup for " + server.getName(), DiscordIOManager.MessageType.ERROR);
             e.printStackTrace();
             return;
         }
-        dioManager.outputToConsole("Successfully created a backup for " + server.name, DiscordIOManager.MessageType.STANDARD);
+        dioManager.outputToConsole("Successfully created a backup for " + server.getName(), DiscordIOManager.MessageType.STANDARD);
     }
 
     /**
@@ -84,10 +91,10 @@ public class ServerFunctionsManager {
      * @param server Server class
      * @param dioManager DiscordIOManager class
      */
-    public void startServer(BasicServer server, DiscordIOManager dioManager) {
-        String startFilePath = server.path + "/start.sh";
+    public void startServer(Server server, DiscordIOManager dioManager) {
+        String startFilePath = server.getPath() + "/start.sh";
         if (Files.notExists(Path.of(startFilePath))) {
-            dioManager.outputToConsole("Error: start.sh file not found for " + server.name, DiscordIOManager.MessageType.ERROR);
+            dioManager.outputToConsole("Error: start.sh file not found for " + server.getName(), DiscordIOManager.MessageType.ERROR);
             return;
         }
 
@@ -95,10 +102,10 @@ public class ServerFunctionsManager {
             ProcessBuilder processBuilder = new ProcessBuilder("bash", startFilePath);
             Process process = processBuilder.start();
 
-            server.pid = getProcessId(process);
+            server.setPID(getProcessId(process));
 
         } catch (IOException e) {
-            dioManager.outputToConsole("Error: Failed to start " + server.name, DiscordIOManager.MessageType.ERROR);
+            dioManager.outputToConsole("Error: Failed to start " + server.getName(), DiscordIOManager.MessageType.ERROR);
             e.printStackTrace();
         }
     }
@@ -113,5 +120,24 @@ public class ServerFunctionsManager {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    /**
+     * Stops a Server.
+     * The Discord Bot will receive a packet from the Server if it was shutdown successfully
+     * @param server Server class
+     */
+    public void stopServer(Server server) {
+        this.dataServer.sendData(DataType.SERVER_START, null, server.getWebsocket());
+    }
+
+    /**
+     * Restarts a Server.
+     * The Discord Bot will receive a packet from the Server if it was restarted successfully
+     * @param server Server class
+     * @param softRestart if the JVM should not restart
+     */
+    public void restartServer(Server server, boolean softRestart) {
+        this.dataServer.sendData(DataType.SERVER_RESTART, softRestart, server.getWebsocket());
     }
 }
